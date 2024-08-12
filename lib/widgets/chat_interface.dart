@@ -4,6 +4,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:towner/providers/marketplace_provider.dart';
+import 'package:towner/services/ai_service.dart';
 
 class ChatInterface extends StatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _ChatInterfaceState extends State<ChatInterface> {
   final TextEditingController _textController = TextEditingController();
   final List<Map<String, String>> _messages = [];
   final ScrollController _scrollController = ScrollController();
-  late GenerativeModel _model;
+  late AIService _aiService;
   late stt.SpeechToText _speech;
   late FlutterTts _flutterTts;
   bool _isListening = false;
@@ -22,14 +23,9 @@ class _ChatInterfaceState extends State<ChatInterface> {
   @override
   void initState() {
     super.initState();
-    _initializeAI();
+    _aiService = AIService();
     _initializeSpeech();
     _initializeTts();
-  }
-
-  void _initializeAI() {
-    final apiKey = 'YOUR_GEMINI_API_KEY'; // Replace with your actual API key
-    _model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
   }
 
   void _initializeSpeech() {
@@ -48,16 +44,15 @@ class _ChatInterfaceState extends State<ChatInterface> {
     _scrollToBottom();
 
     if (_isMarketplaceCommand(text)) {
-      _handleMarketplaceCommand(text);
+      await _handleMarketplaceCommand(text);
     } else {
       try {
-        final content = [Content.text(text)];
-        final response = await _model.generateContent(content);
+        final response = await _aiService.generateResponse(text);
         setState(() {
-          _messages.add({'role': 'bot', 'content': response.text ?? 'No response'});
+          _messages.add({'role': 'bot', 'content': response});
         });
         _scrollToBottom();
-        _speakResponse(response.text ?? 'No response');
+        _speakResponse(response);
       } catch (e) {
         print('Error: $e');
         setState(() {
@@ -76,12 +71,16 @@ class _ChatInterfaceState extends State<ChatInterface> {
         lowercaseText.contains('product');
   }
 
-  void _handleMarketplaceCommand(String text) {
+  Future<void> _handleMarketplaceCommand(String text) async {
     final marketplaceProvider = Provider.of<MarketplaceProvider>(context, listen: false);
     if (text.toLowerCase().contains('sell') || text.toLowerCase().contains('create listing')) {
       marketplaceProvider.setCurrentListing(text);
       Navigator.pushNamed(context, '/create_listing');
     } else if (text.toLowerCase().contains('buy') || text.toLowerCase().contains('search')) {
+      await marketplaceProvider.fetchListings();
+      final listings = marketplaceProvider.listings;
+      final rankedListings = await _aiService.rankListings(text, listings);
+      marketplaceProvider.setRankedListings(rankedListings);
       Navigator.pushNamed(context, '/marketplace');
     } else {
       _speakResponse("I'm not sure what you want to do in the marketplace. You can say 'sell' to create a listing or 'buy' to browse listings.");

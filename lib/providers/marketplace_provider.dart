@@ -5,9 +5,11 @@ import 'package:towner/models/listing_model.dart';
 class MarketplaceProvider with ChangeNotifier {
   final MarketplaceService _marketplaceService = MarketplaceService();
   List<ListingModel> _listings = [];
+  List<ListingModel> _filteredListings = [];
   String? _currentListingDescription;
 
   List<ListingModel> get listings => _listings;
+  List<ListingModel> get filteredListings => _filteredListings.isEmpty ? _listings : _filteredListings;
   String? get currentListingDescription => _currentListingDescription;
 
   void setCurrentListing(String description) {
@@ -34,6 +36,23 @@ class MarketplaceProvider with ChangeNotifier {
       print('Error fetching listings: $e');
       rethrow;
     }
+  }
+
+  void setRankedListings(List<ListingModel> rankedListings) {
+    _filteredListings = rankedListings;
+    notifyListeners();
+  }
+
+  void searchListings(String query) {
+    if (query.isEmpty) {
+      _filteredListings = [];
+    } else {
+      _filteredListings = _listings.where((listing) =>
+        listing.title.toLowerCase().contains(query.toLowerCase()) ||
+        listing.description.toLowerCase().contains(query.toLowerCase())
+      ).toList();
+    }
+    notifyListeners();
   }
 
   Future<void> updateListing(ListingModel listing) async {

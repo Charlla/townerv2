@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:towner/providers/marketplace_provider.dart';
 import 'package:towner/models/listing_model.dart';
+import 'package:towner/services/ai_service.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   @override
@@ -9,6 +10,9 @@ class MarketplaceScreen extends StatefulWidget {
 }
 
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final AIService _aiService = AIService();
+
   @override
   void initState() {
     super.initState();
@@ -27,24 +31,57 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           ),
         ],
       ),
-      body: Consumer<MarketplaceProvider>(
-        builder: (context, marketplaceProvider, child) {
-          if (marketplaceProvider.listings.isEmpty) {
-            return Center(child: Text('No listings available'));
-          }
-          return ListView.builder(
-            itemCount: marketplaceProvider.listings.length,
-            itemBuilder: (context, index) {
-              final listing = marketplaceProvider.listings[index];
-              return ListTile(
-                title: Text(listing.title),
-                subtitle: Text('${listing.description}\nPrice: \$${listing.price.toStringAsFixed(2)}'),
-                trailing: listing.isSold ? Icon(Icons.check_circle, color: Colors.green) : null,
-                onTap: () => _showListingDetails(listing),
-              );
-            },
-          );
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search listings...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onChanged: (value) async {
+                final marketplaceProvider = context.read<MarketplaceProvider>();
+                if (value.isEmpty) {
+                  marketplaceProvider.setRankedListings([]);
+                } else {
+                  final rankedListings = await _aiService.rankListings(
+                    value,
+                    marketplaceProvider.listings,
+                  );
+                  marketplaceProvider.setRankedListings(rankedListings);
+                }
+              },
+            ),
+          ),
+          Expanded(
+            child: Consumer<MarketplaceProvider>(
+              builder: (context, marketplaceProvider, child) {
+                final listings = marketplaceProvider.filteredListings;
+
+                if (listings.isEmpty) {
+                  return Center(child: Text('No listings available'));
+                }
+                return ListView.builder(
+                  itemCount: listings.length,
+                  itemBuilder: (context, index) {
+                    final listing = listings[index];
+                    return ListTile(
+                      title: Text(listing.title),
+                      subtitle: Text('${listing.description}\nPrice: \$${listing.price.toStringAsFixed(2)}'),
+                      trailing: listing.isSold ? Icon(Icons.check_circle, color: Colors.green) : null,
+                      onTap: () => _showListingDetails(listing),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
