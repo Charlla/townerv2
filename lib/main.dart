@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:towner/app/app.dart';
 import 'package:towner/providers/auth_provider.dart';
 import 'package:towner/providers/marketplace_provider.dart';
+import 'package:towner/providers/community_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -16,6 +17,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MarketplaceProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
       ],
       child: TownerApp(),
     ),

@@ -4,6 +4,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:towner/providers/marketplace_provider.dart';
+import 'package:towner/providers/community_provider.dart';
 import 'package:towner/services/ai_service.dart';
 
 class ChatInterface extends StatefulWidget {
@@ -62,30 +63,37 @@ class _ChatInterfaceState extends State<ChatInterface> {
     }
   }
 
-  bool _isMarketplaceCommand(String text) {
-    final lowercaseText = text.toLowerCase();
-    return lowercaseText.contains('sell') ||
-        lowercaseText.contains('buy') ||
-        lowercaseText.contains('marketplace') ||
-        lowercaseText.contains('listing') ||
-        lowercaseText.contains('product');
-  }
+ bool _isMarketplaceCommand(String text) {
+  final lowercaseText = text.toLowerCase();
+  return lowercaseText.contains('sell') ||
+      lowercaseText.contains('buy') ||
+      lowercaseText.contains('marketplace') ||
+      lowercaseText.contains('listing') ||
+      lowercaseText.contains('product') ||
+      lowercaseText.contains('project') ||
+      lowercaseText.contains('create project');
+}
 
   Future<void> _handleMarketplaceCommand(String text) async {
-    final marketplaceProvider = Provider.of<MarketplaceProvider>(context, listen: false);
-    if (text.toLowerCase().contains('sell') || text.toLowerCase().contains('create listing')) {
-      marketplaceProvider.setCurrentListing(text);
-      Navigator.pushNamed(context, '/create_listing');
-    } else if (text.toLowerCase().contains('buy') || text.toLowerCase().contains('search')) {
-      await marketplaceProvider.fetchListings();
-      final listings = marketplaceProvider.listings;
-      final rankedListings = await _aiService.rankListings(text, listings);
-      marketplaceProvider.setRankedListings(rankedListings);
-      Navigator.pushNamed(context, '/marketplace');
-    } else {
-      _speakResponse("I'm not sure what you want to do in the marketplace. You can say 'sell' to create a listing or 'buy' to browse listings.");
-    }
+  final marketplaceProvider = Provider.of<MarketplaceProvider>(context, listen: false);
+  final communityProvider = Provider.of<CommunityProvider>(context, listen: false);
+  
+  if (text.toLowerCase().contains('sell') || text.toLowerCase().contains('create listing')) {
+    marketplaceProvider.setCurrentListing(text);
+    Navigator.pushNamed(context, '/create_listing');
+  } else if (text.toLowerCase().contains('buy') || text.toLowerCase().contains('search')) {
+    await marketplaceProvider.fetchListings();
+    final listings = marketplaceProvider.listings;
+    final rankedListings = await _aiService.rankListings(text, listings);
+    marketplaceProvider.setRankedListings(rankedListings);
+    Navigator.pushNamed(context, '/marketplace');
+  } else if (text.toLowerCase().contains('project') || text.toLowerCase().contains('create project')) {
+    communityProvider.setCurrentProjectDescription(text);
+    Navigator.pushNamed(context, '/create_project');
+  } else {
+    _speakResponse("I'm not sure what you want to do. You can say 'sell' to create a listing, 'buy' to browse listings, or 'create project' to start a new community project.");
   }
+}
 
   void _startListening() async {
     bool available = await _speech.initialize();

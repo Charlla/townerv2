@@ -5,6 +5,7 @@ import 'package:towner/screens/auth/register_screen.dart';
 import 'package:towner/screens/marketplace/marketplace_screen.dart';
 import 'package:towner/screens/marketplace/create_listing_screen.dart';
 import 'package:towner/screens/community/community_screen.dart';
+import 'package:towner/screens/community/create_project_screen.dart';
 import 'package:towner/screens/insights/insights_screen.dart';
 
 class AppRoutes {
@@ -14,6 +15,7 @@ class AppRoutes {
   static const String marketplace = '/marketplace';
   static const String createListing = '/create_listing';
   static const String community = '/community';
+  static const String createProject = '/create_project';
   static const String insights = '/insights';
 
   static Map<String, WidgetBuilder> routes = {
@@ -23,6 +25,7 @@ class AppRoutes {
     marketplace: (context) => MarketplaceScreen(),
     createListing: (context) => CreateListingScreen(),
     community: (context) => CommunityScreen(),
+    createProject: (context) => CreateProjectScreen(),
     insights: (context) => InsightsScreen(),
   };
 }
