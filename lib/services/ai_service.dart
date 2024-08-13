@@ -7,7 +7,7 @@ class AIService {
   late GenerativeModel _model;
 
   AIService() {
-    final apiKey = 'AIzaSyADvS5vgFziFBdNAFxAmU5xhuXG_PJNF8c'; // Replace with your actual API key
+    final apiKey = '##REPLACEME_WITH_GEMINI_API_KEY##'; // Replace with your actual API key
     _model = GenerativeModel(
       model: 'gemini-pro',
       apiKey: apiKey,
