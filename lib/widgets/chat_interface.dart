@@ -115,8 +115,10 @@ class _ChatInterfaceState extends State<ChatInterface> {
   }
 
   void _speakResponse(String text) async {
-    await _flutterTts.speak(text);
-  }
+  // Remove special characters and excessive whitespace
+  String cleanText = text.replaceAll(RegExp(r'[^\w\s]'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
+  await _flutterTts.speak(cleanText);
+}
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {

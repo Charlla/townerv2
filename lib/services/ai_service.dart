@@ -8,9 +8,17 @@ class AIService {
 
   AIService() {
     final apiKey = 'AIzaSyADvS5vgFziFBdNAFxAmU5xhuXG_PJNF8c'; // Replace with your actual API key
-    _model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+    _model = GenerativeModel(
+      model: 'gemini-pro',
+      apiKey: apiKey,
+      safetySettings: [
+        SafetySetting(HarmCategory.harassment, HarmBlockThreshold.none),
+        SafetySetting(HarmCategory.hateSpeech, HarmBlockThreshold.none),
+        SafetySetting(HarmCategory.sexuallyExplicit, HarmBlockThreshold.none),
+        SafetySetting(HarmCategory.dangerousContent, HarmBlockThreshold.none),
+      ],
+    );
   }
-
   Future<String> generateResponse(String prompt) async {
     try {
       final content = [Content.text(prompt)];

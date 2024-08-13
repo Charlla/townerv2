@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:towner/providers/community_provider.dart';
 import 'package:towner/models/project_model.dart';
 import 'package:towner/services/ai_service.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+
 
 class CommunityScreen extends StatefulWidget {
   @override
@@ -103,40 +105,54 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   void _showProjectDetails(BuildContext context, ProjectModel project) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(project.title),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(project.description),
-                SizedBox(height: 10),
-                Text('Skills Needed: ${project.skillsNeeded.join(", ")}'),
-                Text('Deadline: ${project.deadline.toString().split(' ')[0]}'),
-                Text('Volunteers: ${project.volunteerIds.length}/${project.volunteersNeeded}'),
-                Text('Status: ${project.status}'),
-              ],
-            ),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(project.title),
+        content: Container(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              MarkdownBody(
+                data: '''
+### Description
+${project.description}
+
+### Skills Needed
+${project.skillsNeeded.join(", ")}
+
+### Deadline
+${project.deadline.toString().split(' ')[0]}
+
+### Volunteers
+${project.volunteerIds.length}/${project.volunteersNeeded}
+
+### Status
+${project.status}
+''',
+              ),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Volunteer'),
-              onPressed: () {
-                // Implement volunteer functionality
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Close'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Volunteer'),
+            onPressed: () {
+              // Implement volunteer functionality
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 }
